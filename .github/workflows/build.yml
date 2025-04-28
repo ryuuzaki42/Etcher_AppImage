@@ -16,49 +16,45 @@ jobs:
     - name: Install fuse libfuse2
       run: sudo apt install fuse libfuse2
 
-    - name: Make Etcher AppDir
+    - name: Make balenaEtcher AppDir
       run: |
         set -x
-        version=$(grep -o "Etcher:.*" README.md | cut -d ' ' -f2)
-        echo "Etcher version: $version"
+        version=$(grep -o "balenaEtcher:.*" README.md | cut -d ' ' -f2)
+        echo "balenaEtcher version: $version"
 
-        mkdir -p syncthing.AppDir/
+        mkdir -p balenaEtcher.AppDir/
 
-        #cp syncthing.desktop syncthing.AppDir/
+        #cp balenaEtcher.desktop balenaEtcher.AppDir/
 
-        cat > syncthing.AppDir/syncthing.desktop << 'EOF'
+        cat > balenaEtcher.AppDir/balenaEtcher.desktop << 'EOF'
         [Desktop Entry]
-        Name=Syncthing
-        GenericName=File synchronization
-        Comment=Starts syncthing
-        Exec=syncthing
-        Icon=syncthing
+        Name=balenaEtcher
+        Exec=balena-etcher
+        Icon=balenaEtcher
         Terminal=false
         Type=Application
-        Keywords=synchronization;daemon;
-        Categories=Network;FileTransfer;P2P
+        Categories=Utility;
         EOF
 
-        chmod +x syncthing.AppDir/syncthing.desktop
+        chmod +x balenaEtcher.AppDir/balenaEtcher.desktop
 
-        cat > syncthing.AppDir/AppRun << 'EOF'
+        cat > balenaEtcher.AppDir/AppRun << 'EOF'
         #!/bin/bash
         HERE="$(dirname "$(readlink -f "${0}")")"
 
         cd /"$HERE"/usr/bin/
-        ./syncthing
+        ./balena-etcher
         EOF
 
-        #curl --location -o syncthing.AppDir/AppRun https://github.com/AppImage/AppImageKit/releases/download/continuous/AppRun-x86_64
-        chmod +x syncthing.AppDir/AppRun
+        chmod +x balenaEtcher.AppDir/AppRun
 
-        mkdir -p syncthing.AppDir/usr/
-        cd syncthing.AppDir/usr/
+        mkdir -p balenaEtcher.AppDir/usr/
+        cd balenaEtcher.AppDir/usr/
 
-        wget https://github.com/syncthing/syncthing/releases/download/v$version/syncthing-linux-amd64-v$version.tar.gz
-        tar -xvf syncthing-linux-amd64-v$version.tar.gz
-        rm syncthing-linux-amd64-v$version.tar.gz
-        mv syncthing-linux-amd64-v$version/ bin/
+        wget https://github.com/balena-io/etcher/releases/download/v$version/balenaEtcher-linux-x64-$version.zip
+        unzip balenaEtcher-linux-x64-$version.zip
+        rm balenaEtcher-linux-x64-$version.zip
+        mv balenaEtcher-linux-x64/ bin/
 
         pwd
         ls -lah
@@ -66,8 +62,8 @@ jobs:
         pwd
         ls -lah
 
-        wget https://github.com/syncthing/syncthing/blob/main/assets/logo-128.png -O syncthing.AppDir/syncthing.png
-        cp README.md syncthing.AppDir
+        wget https://github.com/balena-io/etcher/blob/master/assets/iconset/128x128.png -O etcher.AppDir/balenaEtcher.png
+        cp README.md balenaEtcher.AppDir
 
     - name: Get appimagetool
       run: |
@@ -83,12 +79,12 @@ jobs:
       run:  |
         set -x
         pwd; ls -lah
-        version=$(grep -o "Etcher:.*" README.md | cut -d ' ' -f2)
-        echo "Etcher version: $version"
+        version=$(grep -o "balenaEtcher:.*" README.md | cut -d ' ' -f2)
+        echo "balenaEtcher version: $version"
 
-        ARCH=x86_64 VERSION="${version}-1_JB" ./appimagetool-x86_64.AppImage syncthing.AppDir
+        ARCH=x86_64 VERSION="${version}-1_JB" ./appimagetool-x86_64.AppImage balenaEtcher.AppDir
 
-        fileName=$(ls Etcher*.AppImage)
+        fileName=$(ls balenaEtcher*.AppImage)
         echo "fileName: $fileName"
 
         md5sum "$fileName" > "${fileName}.md5"
@@ -103,11 +99,11 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          file: "Etcher*.AppImage; Etcher*.zsync ; Etcher*.md5"
+          file: "balenaEtcher*.AppImage; balenaEtcher*.zsync ; balenaEtcher*.md5"
           #delete_file: "random-name-*.txt;random-*.txt"
           release_id: ${{ steps.create_release.outputs.id }}
           #overwrite: true
           verbose: true
           #tags: true
           draft: false
-          default_release_name: "Syncthing V in AppImage"
+          default_release_name: "balenaEtcher V in AppImage"
