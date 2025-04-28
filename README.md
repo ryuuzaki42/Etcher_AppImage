@@ -1,11 +1,11 @@
 
-# Syncthing_AppImage
-https://syncthing.net/
+# Etcher_AppImage
+https://etcher.balena.io/
 
-## Repository: https://github.com/ryuuzaki42/Syncthing_AppImage
-    Syncthing: 1.29.5
+## Repository: https://github.com/ryuuzaki42/Etcher_AppImage
+    Etcher: 2.1.0
 
 ---
-https://syncthing.net/downloads/
+https://etcher.balena.io/#download-etcher
 
-https://github.com/syncthing/syncthing/releases/latest
+https://github.com/balena-io/etcher/releases/latest
