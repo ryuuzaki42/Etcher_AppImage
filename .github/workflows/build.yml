@@ -62,7 +62,7 @@ jobs:
         pwd
         ls -lah
 
-        wget https://github.com/balena-io/etcher/blob/master/assets/iconset/128x128.png -O etcher.AppDir/balenaEtcher.png
+        wget https://github.com/balena-io/etcher/blob/master/assets/iconset/128x128.png -O balenaEtcher.AppDir/balenaEtcher.png
         cp README.md balenaEtcher.AppDir
 
     - name: Get appimagetool
