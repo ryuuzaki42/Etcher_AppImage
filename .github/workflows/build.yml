@@ -1,0 +1,113 @@
+name: Create new realease
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "!**"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install fuse libfuse2
+      run: sudo apt install fuse libfuse2
+
+    - name: Make Syncthing AppDir
+      run: |
+        set -x
+        version=$(grep -o "Syncthing:.*" README.md | cut -d ' ' -f2)
+        echo "Syncthing version: $version"
+
+        mkdir -p syncthing.AppDir/
+
+        #cp syncthing.desktop syncthing.AppDir/
+
+        cat > syncthing.AppDir/syncthing.desktop << 'EOF'
+        [Desktop Entry]
+        Name=Syncthing
+        GenericName=File synchronization
+        Comment=Starts syncthing
+        Exec=syncthing
+        Icon=syncthing
+        Terminal=false
+        Type=Application
+        Keywords=synchronization;daemon;
+        Categories=Network;FileTransfer;P2P
+        EOF
+
+        chmod +x syncthing.AppDir/syncthing.desktop
+
+        cat > syncthing.AppDir/AppRun << 'EOF'
+        #!/bin/bash
+        HERE="$(dirname "$(readlink -f "${0}")")"
+
+        cd /"$HERE"/usr/bin/
+        ./syncthing
+        EOF
+
+        #curl --location -o syncthing.AppDir/AppRun https://github.com/AppImage/AppImageKit/releases/download/continuous/AppRun-x86_64
+        chmod +x syncthing.AppDir/AppRun
+
+        mkdir -p syncthing.AppDir/usr/
+        cd syncthing.AppDir/usr/
+
+        wget https://github.com/syncthing/syncthing/releases/download/v$version/syncthing-linux-amd64-v$version.tar.gz
+        tar -xvf syncthing-linux-amd64-v$version.tar.gz
+        rm syncthing-linux-amd64-v$version.tar.gz
+        mv syncthing-linux-amd64-v$version/ bin/
+
+        pwd
+        ls -lah
+        cd ../../
+        pwd
+        ls -lah
+
+        wget https://github.com/syncthing/syncthing/blob/main/assets/logo-128.png -O syncthing.AppDir/syncthing.png
+        cp README.md syncthing.AppDir
+
+    - name: Get appimagetool
+      run: |
+        set -x
+        #wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        version_go_appimage=$(wget -q -O - https://api.github.com/repos/probonopd/go-appimage/releases | grep "\"name.*appimagetool-.*-x86_64.AppImage\"" | head -n 1 | cut -d '-' -f2)
+        echo "version_go_appimage: $version_go_appimage"
+
+        wget -q "https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-$version_go_appimage-x86_64.AppImage" -O appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+
+    - name: Make AppImage
+      run:  |
+        set -x
+        pwd; ls -lah
+        version=$(grep -o "Syncthing:.*" README.md | cut -d ' ' -f2)
+        echo "Syncthing version: $version"
+
+        ARCH=x86_64 VERSION="${version}-1_JB" ./appimagetool-x86_64.AppImage syncthing.AppDir
+
+        fileName=$(ls Syncthing*.AppImage)
+        echo "fileName: $fileName"
+
+        md5sum "$fileName" > "${fileName}.md5"
+        pwd; ls -lah
+
+    # Build - Errror: Resource not accessible by integration
+    # Change Settings -> Actions -> General -> Workflow Permissions to allow read and write:
+    # https://github.com/actions/first-interaction/issues/10#issuecomment-1506118886
+
+    # https://github.com/marketplace/actions/upload-to-github-release
+    - uses: xresloader/upload-to-github-release@main
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          file: "Syncthing*.AppImage; Syncthing*.zsync ; Syncthing*.md5"
+          #delete_file: "random-name-*.txt;random-*.txt"
+          release_id: ${{ steps.create_release.outputs.id }}
+          #overwrite: true
+          verbose: true
+          #tags: true
+          draft: false
+          default_release_name: "Syncthing V in AppImage"
