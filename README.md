@@ -3,7 +3,7 @@
 https://etcher.balena.io/
 
 ## Repository: https://github.com/ryuuzaki42/balenaEtcher_AppImage
-    balenaEtcher: 2.1.0
+    balenaEtcher: 2.1.1
 
 ---
 https://etcher.balena.io/#download-etcher
