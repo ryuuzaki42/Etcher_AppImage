@@ -43,6 +43,7 @@ jobs:
         HERE="$(dirname "$(readlink -f "${0}")")"
 
         cd /"$HERE"/usr/bin/
+        echo -e "\n/"$HERE"/usr/bin/balena-etcher $@\n"
         ./balena-etcher $@
         EOF
 
